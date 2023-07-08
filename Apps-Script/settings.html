@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        form {
+            max-width: 400px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: steelblue;
+            font-weight: bold;
+        }
+
+        a {
+            color: lightskyblue;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            display: block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: steelblue;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: dodgerblue;
+        }
+
+        .helptext {
+            display: block;
+            margin-bottom: 10px;
+            color: darkgray;
+            font-size: 10pt;
+        }
+
+        .info {
+            display: block;
+            margin-bottom: 10px;
+            color: gray;
+            font-size: 12pt;
+        }
+
+        #infoBox {
+            display: block;
+            margin-top: 10px;
+            color: darkgray;
+            font-size: 10pt;
+            border-radius: 4px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: white;
+            opacity: 50%;            
+            z-index: 2;
+            text-align: center;
+        }
+
+        .align_helper {
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+        }
+
+        .center {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading" id="loading">
+        <span class="align_helper"></span>
+        <img class="center" src="https://i.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.webp" width=200 height=200>
+    </div>
+    <span class='info'>The following information is used to fetch issue summaries from your Jira server. If you do not wish to use this feature, you can leave these settings empty.
+    </span>
+
+    <form id="settingsForm">
+        <label for="email">Jira Login Email</label>
+        <input type="text" id="email" name="email" placeholder="user@domain.com" required>
+        <span class='helptext'>Your Jira login email address</a></span>
+
+        <label for="key">API Key</label>
+        <input type="text" id="apiToken" name="apiToken" placeholder="eW91IGZvdW5kIGFuIGVhc3RlciBlZ2ch" required>
+        <span class='helptext'>Your Jira API token. See instructions <a href="https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/">here</a></span>
+
+        <button type="submit" onclick="saveSettings(event)">Save</button>
+
+        <span id="infoBox"></span>
+    </form>
+
+
+    <script>
+        //on load
+        loadSettings();
+
+        function onSettingsLoaded(settings) {
+            document.getElementById('email').value = settings.email
+            document.getElementById('apiToken').value = settings.apiToken
+
+            document.getElementById('loading').style.display = "none";
+        }
+
+        function onServerError(error) {
+            showInfo(error.message, true)
+        }
+
+        function loadSettings() {
+            google.script.run
+                .withSuccessHandler(onSettingsLoaded)
+                .withFailureHandler(onServerError)
+                .getSettings();
+        }
+
+        function saveSettings(event) {
+            event.preventDefault();
+
+            var settings = {
+                email: document.getElementById('email').value,
+                apiToken: document.getElementById('apiToken').value,
+            };
+
+            google.script.run
+                .withFailureHandler(
+                    function(msg, element) {
+                        alert(msg);
+                    })
+                .saveSettings(settings);
+
+            google.script.host.close();
+        }
+
+        function showInfo(message, isError) {
+            document.getElementById('infoBox').textContent = message
+        }
+
+        function clearInfo() {
+            document.getElementById('infoBox').textContent = ""
+        }
+    </script>
+
+</body>
+
+</html>
